@@ -1,10 +1,10 @@
 import os
 import pickle
 import subprocess
-
+#LALALALA
 import numpy as np
 import pandas as pd
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from sklearn.linear_model import Lasso
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error
 from sklearn.model_selection import train_test_split
@@ -12,14 +12,15 @@ from sklearn.model_selection import train_test_split
 os.chdir(os.path.dirname(__file__))
 
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='mapp_model_hooks')
 app.config["DEBUG"] = True
 
 
 # Enruta la landing page (endpoint /)
 @app.route("/", methods=["GET"])
 def hello():
-    return "Bienvenido a mi API del modelo advertising"
+    #return "Bienvenido a mi API del modelo advertising"
+    return render_template("index.html")  # Busca dentro de `mapp_model_hooks`
 
 
 # Enruta la funcion al endpoint /api/v1/predict
@@ -31,16 +32,20 @@ http://127.0.0.1:5000/api/v1/predict?radio=15&newspaper=60&tv=80
 """
 
 
-@app.route("/api/v1/predict", methods=["GET"])
+@app.route("/api/v1/predict", methods=["POST"])
 def predict():  # Ligado al endpoint '/api/v1/predict', con el método GET
     model = pickle.load(open("ad_model.pkl", "rb"))
-    tv = request.args.get("tv", None)
-    radio = request.args.get("radio", None)
-    newspaper = request.args.get("newspaper", None)
+    #tv = request.args.get("tv", None)
+    #radio = request.args.get("radio", None)
+    #newspaper = request.args.get("newspaper", None)
+
+    tv = float(request.form.get("Tv"))
+    newspaper = float(request.form.get("newspaper"))
+    radio = float(request.form.get("radio"))
 
     print(tv, radio, newspaper)
     print(type(tv))
-
+    
     if tv is None or radio is None or newspaper is None:
         return "Args empty, the data are not enough to predict, STUPID!!!!"
     else:
@@ -82,8 +87,8 @@ def retrain():  # Rutarlo al endpoint '/api/v1/retrain/', metodo GET
 @app.route("/webhook", methods=["POST"])
 def webhook():
     # Ruta al repositorio donde se realizará el pull
-    path_repo = "/home/lucaszv/myFlaskApp"
-    servidor_web = "/var/www/lucaszv_pythonanywhere_com_wsgi.py"
+    path_repo = "/home/jgonzalezsua/myFlaskapp_practica"
+    servidor_web = "/var/www/jgonzalezsua_pythonanywhere_com_wsgi.py"
 
     # Comprueba si la solicitud POST contiene datos JSON
     if request.is_json:
@@ -128,4 +133,4 @@ def webhook():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

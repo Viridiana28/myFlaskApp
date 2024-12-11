@@ -88,8 +88,8 @@ def retrain():  # Rutarlo al endpoint '/api/v1/retrain/', metodo GET
 def webhook():
     # Ruta al repositorio donde se realizará el pull
 <<<<<<< HEAD
-    path_repo = "/home/jgonzalezsua/myFlaskapp_practica"
-    servidor_web = "/var/www/jgonzalezsua_pythonanywhere_com_wsgi.py"
+    path_repo = "/home/Vicuenta2/myFlaskApp"
+    servidor_web = "/var/www/vicuenta2_pythonanywhere_com_wsgi.py"
 =======
     path_repo = "/home/vicuenta2/myFlaskApp"
     servidor_web = "/var/www/vicuenta2_pythonanywhere_com_wsgi.py"

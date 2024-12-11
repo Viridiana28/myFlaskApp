@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Advertising Predictor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('portada-9.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #000; /* Negro */
+            text-align: center;
+        }
+        h1 {
+            margin-top: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        canvas {
+            margin: 20px auto;
+            max-width: 700px;
+            background-color: #f0f8ff; /* Fondo azul claro */
+            border: 2px solid #000; /* Bordes negros más visibles */
+            border-radius: 10px; /* Bordes redondeados para un diseño atractivo */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Sombra para resaltar */
+        }
+        form {
+            background: #fff;
+            color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            display: inline-block;
+            margin-top: 20px;
+            text-align: left;
+            width: 300px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input {
+            padding: 10px;
+            margin-bottom: 15px;
+            width: calc(100% - 20px);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 350px; /* Mismo ancho que el gráfico */
+            max-width: 80%; /* Para mantener responsividad */
+            margin: 20px auto; /* Centrar */
+            display: block; /* Asegurar que se vea como bloque */
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bienvenido a mi API</h1>
+    
+    <!-- Imagen -->
+    <img src="machine-learning-2.gif" alt="Machine Learning" width="300" height="200">
+
+    <p>Introduce los valores para realizar una predicción:</p>
+
+
+    <form id="predictionForm">
+        <label for="Tv">Inversión en TV:</label>
+        <input type="text" id="Tv" name="Tv" placeholder="Ejemplo: 230.1" required>
+
+        <label for="newspaper">Inversión en Periódico:</label>
+        <input type="text" id="newspaper" name="newspaper" placeholder="Ejemplo: 37.8" required>
+
+        <label for="radio">Inversión en Radio:</label>
+        <input type="text" id="radio" name="radio" placeholder="Ejemplo: 69.2" required>
+
+        <button type="submit">Realizar Predicción</button>
+    </form>
+
+    <button id="retrainButton">Retrain Modelo</button>
+
+    <div id="result"></div>
+    <canvas id="predictionChart" style="display: none;"></canvas>
+    <canvas id="totalComparisonChart" style="display: none;"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const chartCanvas = document.getElementById('predictionChart');
+        const totalComparisonCanvas = document.getElementById('totalComparisonChart');
+        let predictionChart;
+        let totalComparisonChart;
+
+        function showPredictionChart(predictions, inputs) {
+            const ctx = chartCanvas.getContext('2d');
+            if (predictionChart) {
+                predictionChart.destroy();
+            }
+            chartCanvas.style.display = 'block';
+            predictionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['TV', 'Newspaper', 'Radio'],
+                    datasets: [
+                        {
+                            label: 'Inversión ($)',
+                            data: inputs,
+                            backgroundColor: ['#6495ED', '#87CEFA', '#4682B4'], /* Tonos más suaves de azul */
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Predicción ($)',
+                            data: predictions,
+                            backgroundColor: '#87CEEB', /* Azul claro */
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            display: false // Oculta la leyenda
+                        },
+                        title: {
+                            display: true,
+                            text: 'Inversión realizada',
+                            font: {
+                                size: 18
+                            }
+                        }
+                    },
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function showTotalComparisonChart(predictions, inputs) {
+            const ctx = totalComparisonCanvas.getContext('2d');
+            if (totalComparisonChart) {
+                totalComparisonChart.destroy();
+            }
+            totalComparisonCanvas.style.display = 'block';
+
+            // Total de inversión
+            const totalInvestment = inputs.reduce((a, b) => a + b, 0);
+
+            // Cálculos de las predicciones proporcionales
+            const tvPrediction = predictions * (inputs[0] / totalInvestment);
+            const newspaperPrediction = predictions * (inputs[1] / totalInvestment);
+            const radioPrediction = predictions * (inputs[2] / totalInvestment);
+
+            totalComparisonChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['TV', 'Newspaper', 'Radio'],
+                    datasets: [{
+                        data: [tvPrediction, newspaperPrediction, radioPrediction],
+                        backgroundColor: ['#6495ED', '#87CEFA', '#4682B4'], /* Tonos más suaves de azul */
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false // Oculta la leyenda
+                        },
+                        title: {
+                            display: true,
+                            text: 'Predicción de ventas',
+                            font: {
+                                size: 18
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('predictionForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const Tv = parseFloat(document.getElementById('Tv').value);
+            const newspaper = parseFloat(document.getElementById('newspaper').value);
+            const radio = parseFloat(document.getElementById('radio').value);
+
+            if (isNaN(Tv) || isNaN(newspaper) || isNaN(radio)) {
+                document.getElementById('result').textContent = 'Por favor, ingrese valores numéricos válidos.';
+                return;
+            }
+
+            fetch('/api/v1/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `Tv=${Tv}&newspaper=${newspaper}&radio=${radio}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').textContent = `La predicción de ventas es: $${data.predictions.toFixed(2)}`;
+                const inputs = [Tv, newspaper, radio];
+                const predictions = data.predictions;
+
+                showPredictionChart(predictions, inputs);
+                showTotalComparisonChart(predictions, inputs);
+            })
+            .catch(error => {
+                document.getElementById('result').textContent = 'Hubo un error al procesar la solicitud.';
+            });
+        });
+
+        document.getElementById('retrainButton').addEventListener('click', function() {
+            fetch('/api/v1/retrain', {
+                method: 'GET',
+            })
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('retrainResult').textContent = data;
+            })
+            .catch(error => {
+                document.getElementById('retrainResult').textContent = 'Hubo un error al intentar hacer retrain del modelo.';
+            });
+        });
+    </script>
+</body>
+</html>
